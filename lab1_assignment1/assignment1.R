@@ -1,4 +1,7 @@
-data = spambase
+library(kknn, lib.loc="C:/Users/maxlu701/AppData/Local/Temp/RtmpcHgPqU/downloaded_packages")
+
+data = read.csv("spambase.csv", header = TRUE, sep = ",", quote = "\"",
+         dec = ",", fill = TRUE, comment.char = "")
 
 # split data in half for train/test portions, 
 # selecting documents randomly 
@@ -16,7 +19,7 @@ knearest=function(train_data, k, test_data)
   # get the classification column
   spam_column = dim(train_data)[2]
   # set up a vector for the classification probabilities
-  probabilies = numeric(num_rows_test)
+  probabilities = numeric(num_rows_test)
   # set up test and train matrices with the classification column removed
   x_matrix = as.matrix(train_data[, -spam_column])
   y_matrix = as.matrix(test_data[, -spam_column])
@@ -38,11 +41,36 @@ knearest=function(train_data, k, test_data)
     
     # get the mean of spam classifications (values at 'spam_column') from the 
     # training data that corresponds to the row names in nearest_document
-    probabilies[i] = mean(train_data[c(nearest_documents), spam_column])
+    probabilities[i] = mean(train_data[c(nearest_documents), spam_column])
   }
+  return (probabilities)
 }
 
-knearest(train, 5, test)
+accuracy=function(probability_classifications, test_data) {
+  # round the classification probabilities to get predicted class
+  predicted_classifications = round(probability_classifications)
+  # get the true classifications from the 'Spam' column of the test data 
+  true_classifications = test_data$Spam
+  # create the confusion matrix for the predicted and true classifications
+  confusion_matrix = table(predicted_classifications, true_classifications)
+  # get the fraction of correct classifications (sum of the diagonal over the total sum)
+  classification_accuracy = sum(diag(confusion_matrix)) / sum(confusion_matrix)
+  return (classification_accuracy)
+}
+
+probs = knearest(train, 5, test)
+acc = accuracy(probs, test)
+print("our knn model accuracy:")
+print(acc)
+
+kknn5 = kknn(Spam~., train, test, k=5)
+kknn5_probabilities = fitted(kknn5)
+kknn5_acc = accuracy(kknn5_probabilities, test)
+print("kknn accuracy:")
+print(kknn_acc)
+
+pi = seq(0.05, 0.95, by=0.05)
+
 
 # ROC=function(Y, Yfit, p) {
 #   m = length(p)

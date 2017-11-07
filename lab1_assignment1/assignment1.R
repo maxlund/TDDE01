@@ -1,5 +1,10 @@
-library(kknn, lib.loc="C:/Users/maxlu701/AppData/Local/Temp/RtmpcHgPqU/downloaded_packages")
+# if package kknn is not installed, run the following:
+# install.packages("kknn")
 
+# dependencies
+library(kknn)
+
+# load data
 data = read.csv("spambase.csv", header = TRUE, sep = ",", quote = "\"",
          dec = ",", fill = TRUE, comment.char = "")
 
@@ -37,49 +42,104 @@ knearest=function(train_data, k, test_data)
   for (i in 1:num_rows_test) {
     # sort the distances for every instance in the test data 
     # and select the row names of 5 documents that are closest to i
-    nearest_documents = names(sort(distances[, i])[1:k])
+    k_nearest_objects = names(sort(distances[, i])[1:k])
     
     # get the mean of spam classifications (values at 'spam_column') from the 
     # training data that corresponds to the row names in nearest_document
-    probabilities[i] = mean(train_data[c(nearest_documents), spam_column])
+    probabilities[i] = mean(train_data[c(k_nearest_objects), spam_column])
   }
   return (probabilities)
 }
 
-accuracy=function(probability_classifications, test_data) {
+get_confusion_matrix=function(classification_probabilities, test_data) {
   # round the classification probabilities to get predicted class
-  predicted_classifications = round(probability_classifications)
+  predicted_classifications = round(classification_probabilities)
   # get the true classifications from the 'Spam' column of the test data 
   true_classifications = test_data$Spam
   # create the confusion matrix for the predicted and true classifications
-  confusion_matrix = table(predicted_classifications, true_classifications)
-  # get the fraction of correct classifications (sum of the diagonal over the total sum)
-  classification_accuracy = sum(diag(confusion_matrix)) / sum(confusion_matrix)
-  return (classification_accuracy)
+  return (table(predicted_classifications, true_classifications))
 }
 
-probs = knearest(train, 5, test)
-acc = accuracy(probs, test)
-print("our knn model accuracy:")
-print(acc)
+# get the fraction of incorrect classifications (one minus sum of the diagonal over the total sum)
+missclassification_rate=function(confusion_matrix) {
+  return (1 - (sum(diag(confusion_matrix)) / sum(confusion_matrix)))
+}
 
-kknn5 = kknn(Spam~., train, test, k=5)
-kknn5_probabilities = fitted(kknn5)
-kknn5_acc = accuracy(kknn5_probabilities, test)
-print("kknn accuracy:")
-print(kknn_acc)
+# get probabilites and confusion matrix for our knearest classifier using k=5
+probs_knearest5 = knearest(train, 5, test)
+cm_knearest5 = get_confusion_matrix(probs_knearest5, test)
+print("CM for our knearest classifier using k=5:")
+print(cm_knearest5)
+print("missclassification rate:")
+print(missclassification_rate(cm_knearest5))
 
-pi = seq(0.05, 0.95, by=0.05)
+# repeat process for k=1
+probs_knearest1 = knearest(train, 1, test)
+cm_knearest1 = get_confusion_matrix(probs_knearest1, test)
+print("CM for our knearest classifier using k=1:")
+print(cm_knearest1)
+print("missclassification rate:")
+print(missclassification_rate(cm_knearest1))
 
+# repeat again but using kknn classifier from the kknn package with k=5
+kknn5 = kknn(formula=Spam~., train=train, test=test, k=5)
+probs_kknn5 = fitted.values(kknn5)
+cm_kknn5 = get_confusion_matrix(probs_kknn5, test)
+print("CM for kknn classifier using k=5:")
+print(cm_kknn5)
+print("missclassification rate:")
+print(missclassification_rate(cm_kknn5))
 
-# ROC=function(Y, Yfit, p) {
-#   m = length(p)
-#   TPR = numeric(m)
-#   FPR = numeric(m)
-#   for (i in 1:m) {
-#     t = table(Yfit>p[i], Y)
-#     TPR[i] = #insert formula for TPR
-#     FPR[i] = #insert formula for FPR
-#   }
-#   return (list(TPR=TPR,FPR=FPR))
-# }
+# repeat with kknn using k=1
+kknn1 = kknn(formula=Spam~., train=train, test=test, k=1)
+probs_kknn1 = fitted.values(kknn1)
+cm_kknn1 = get_confusion_matrix(probs_kknn1, test)
+print("CM for kknn classifier using k=1:")
+print(cm_kknn1)
+print("missclassification rate:")
+print(missclassification_rate(cm_kknn1))
+
+# classify_seq = seq(0.05, 0.95, by=0.05)
+# my_test = c(0.99, 0.94, 0.3, 0.2, 0.1)
+# my_out = sapply(my_test, function(x) as.numeric(x > classify_seq))
+# print(my_out)
+
+# with sequence 'classify_seq' to make spam classifications instead of using round()
+# each row in resulting matrix will correspond to classfications using a value from a sequence
+classify_seq = seq(0.05, 0.95, by=0.05)
+classes_by_seq_knearest5 = sapply(probs_knearest5, function(x) as.numeric(x > classify_seq))
+classes_by_seq_kknn5 = sapply(probs_kknn5, function(x) as.numeric(x > classify_seq))
+
+print(nrow(classes_by_seq_knearest5))
+print(ncol(classes_by_seq_knearest5))
+
+# the fraction of true positives over (true positives + false positives)
+precision=function(predicted_classifications, true_classifications) {
+  return (sum(predicted_classifications == 1 & true_classifications == 1) / 
+            (sum(predicted_classifications == 1 & true_classifications == 1) +
+             sum(predicted_classifications == 1 & true_classifications == 0)))
+}
+
+# the fraction of true positives over (true positives + false negatives)
+recall=function(predicted_classifications, true_classifications) {
+  return (sum(predicted_classifications == 1 & true_classifications == 1) / 
+            (sum(predicted_classifications == 1 & true_classifications == 1) +
+             sum(predicted_classifications == 0 & true_classifications == 1)))
+}
+
+# apply precision and recall functions to each row in matrix generated by classes
+# using the different values from the sequence, using knearest model with k=5
+precision_knearest5 = apply(classes_by_seq_knearest5, 1, precision, true_classifications=test$Spam)
+recall_knearest5 = apply(classes_by_seq_knearest5, 1, recall, true_classifications=test$Spam)
+
+# the same using the kknn model with k=5
+precision_kknn5 = apply(classes_by_seq_kknn5, 1, precision, true_classifications=test$Spam)
+recall_kknn5 = apply(classes_by_seq_kknn5, 1, recall, true_classifications=test$Spam)
+
+plot(classify_seq, classify_seq, 
+     main="ROC-curves for knearest and kknn models", 
+     xlab="FPR or (1 - precision)", ylab="TPR or recall", 
+     xlim=c(0.05, 0.95), ylim=c(0.05, 0.95))
+lines(1 - precision_knearest5, recall_knearest5, col="Blue")
+lines(1 - precision_kknn5, recall_kknn5, col="Green")
+abline(0, 1, col="Red")

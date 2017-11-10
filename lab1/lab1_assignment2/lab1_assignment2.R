@@ -14,7 +14,7 @@ log_likelihood=function(theta) {
 }
 
 # log-likelihood function, returns sum of the log-likelihoods using just the first 6 observations
-log_likelihood_first6=function(theta) {
+log_likelihood2=function(theta) {
   return(sum(log(probability(theta, machines[1:6]))))
 }
 
@@ -29,16 +29,15 @@ bayesian_log_likelihood=function(theta) {
 
 # function needs to be vectorized to be accepted by curve.. obviously! (?)
 f <- Vectorize(log_likelihood)
-
 # plot function for values of theta from 0 to 3
 curve(f, from=0, to=3, xlab="theta", ylab="likelihood")
-
 # find the theta value that maximizes the log-likelihood function with all observations
 max_likelihood_all = optimize(f, interval=c(0, 3), maximum=TRUE)
 cat("max log-likelihood value using all observations is given by theta =", max_likelihood_all$maximum)
 
-# repeat using only the first six observations in 'machines'
-f2 <- Vectorize(log_likelihood_first6)
+# repeat using only the first six observations in 'machines' 
+# (can't figure out how to pass several arguments  when plotting with curve() function)
+f2 <- Vectorize(log_likelihood2)
 curve(f2, from=0, to=3, xlab="theta", ylab="likelihood")
 max_likelihood_first6 = optimize(f2, interval=c(0, 3), maximum=TRUE)
 cat("max log-likelihood value using only first 6 observations is given by theta =", max_likelihood_first6$maximum)
@@ -48,4 +47,12 @@ f3 <- Vectorize(bayesian_log_likelihood)
 curve(f3, from=0, to=3, xlab="theta", ylab="likelihood")
 max_likelihood_bayesian = optimize(f3, interval=c(0, 3), maximum=TRUE)
 cat("max log-likelihood in p(x, theta) gives optimal theta =", max_likelihood_bayesian$maximum)
+
+# generate 50 new observations from the exponential distribution
+for (i in 1:50) {
+  new_observations = rexp(50, rate = max_likelihood_all$maximum)
+}
+# plot histograms with the old and new observations
+hist(machines, plot=TRUE)
+hist(new_observations, plot=TRUE)
 

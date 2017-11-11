@@ -143,11 +143,12 @@ precision_kknn5 = apply(classes_by_seq_kknn5, 1, precision, true_classifications
 recall_kknn5 = apply(classes_by_seq_kknn5, 1, recall, true_classifications=test$Spam)
 
 FPR_knearest = apply(classes_by_seq_knearest5, 1, FPR, true_classifications=test$Spam)
+FPR_kknn5 = apply(classes_by_seq_kknn5, 1, FPR, true_classifications=test$Spam)
 
-plot(classify_seq, classify_seq, 
+plot(classify_seq, 
      main="ROC-curves for knearest and kknn models", 
      xlab="FPR or (1 - precision)", ylab="TPR or recall", 
-     xlim=c(0.05, 0.95), ylim=c(0.05, 0.95))
+     xlim=c(0.05, 0.95), ylim=c(0.01, 1))
 lines(FPR_knearest, recall_knearest5, col="Blue")
-#lines(1 - precision_kknn5, recall_kknn5, col="Green")
+lines(FPR_kknn5, recall_kknn5, col="Green")
 abline(0, 1, col="Red")

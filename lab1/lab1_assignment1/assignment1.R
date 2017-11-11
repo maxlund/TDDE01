@@ -147,7 +147,7 @@ FPR_kknn5 = apply(classes_by_seq_kknn5, 1, FPR, true_classifications=test$Spam)
 
 plot(classify_seq, 
      main="ROC-curves for knearest and kknn models", 
-     xlab="FPR or (1 - precision)", ylab="TPR or recall", 
+     xlab="FPR", ylab="TPR", 
      xlim=c(0.05, 0.95), ylim=c(0.01, 1))
 lines(FPR_knearest, recall_knearest5, col="Blue")
 lines(FPR_kknn5, recall_kknn5, col="Green")

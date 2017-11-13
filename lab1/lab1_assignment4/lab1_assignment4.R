@@ -11,7 +11,10 @@ plot(data$Protein, data$Moisture, xlab="Protein", ylab="Moisture", main="Protein
 # a probabilistic model for predicting moisture (M-hat) would therefore be a polynomial function of protein as:
 # M-hat = w0 + w1x^1 + w2x^2 + ... + wix^i
 
-# TODO: Why MSE instead of SSE? MSE = SSE/n-m where n=sample size, m=number of parameters (sum(w0..wi)).
+# TODO: Why MSE instead of SSE? 
+# MSE = SSE/n-m where n=sample size, m=number of parameters (sum(w0..wi)).
+# and also:
+# MSE = 1/n * sum((Yi - Y-hat)^2)
 # MSE will be more dependent on the number of parameters used? 
 
 # divide data into 50/50 training and validation sets
@@ -23,6 +26,7 @@ validation = data[-id,]
 
 train_mse = numeric(6)
 validation_mse = numeric(6)
+
 # fit a linear model using i = 0, 1, .. 6
 for (i in 1:6)
 {
@@ -30,8 +34,8 @@ for (i in 1:6)
   validation_predictions = predict(linear_model, validation)
   train_predictions = predict(linear_model, train)
   
-  validation_mse[i] = mean( (validation$Moisture - validation_predictions)^2 )
-  train_mse[i] = mean( (train$Moisture - train_predictions)^2 )
+  validation_mse[i] = mean((validation$Moisture - validation_predictions)^2)
+  train_mse[i] = mean((train$Moisture - train_predictions)^2)
 }
 
 # plotting we see that i = 1 gives the lowest error in the validation data, while the error
@@ -44,3 +48,10 @@ plot(i_values, main="MSE", ylim=y_limits, xlab="i", ylab="MSE")
 lines(validation_mse, col="green")
 lines(train_mse, col="red")
 text(locator(), labels = c("Validation MSE", "Train MSE"))
+
+# perform a variable selection from a linear model in which Fat is a response and 
+# Channel1-Channel100 are predictors
+
+# useful: http://faculty.chicagobooth.edu/richard.hahn/teaching/formulanotation.pdf
+
+linear_model = lm(Fat ~ . -Protein -Moisture, data=train)

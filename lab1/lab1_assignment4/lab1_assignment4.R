@@ -55,3 +55,5 @@ text(locator(), labels = c("Validation MSE", "Train MSE"))
 # useful: http://faculty.chicagobooth.edu/richard.hahn/teaching/formulanotation.pdf
 
 linear_model = lm(Fat ~ . -Protein -Moisture, data=train)
+??stepAIC
+

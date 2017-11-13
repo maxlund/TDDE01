@@ -1,3 +1,5 @@
+library(MASS)
+
 # read data into dataframe
 data = read.csv("tecator.csv", header = TRUE, sep = ",", quote = "\"",
                     dec = ".", fill = TRUE, comment.char = "")
@@ -47,13 +49,15 @@ y_limits = c(min(train_mse, validation_mse), max(train_mse, validation_mse))
 plot(i_values, main="MSE", ylim=y_limits, xlab="i", ylab="MSE")
 lines(validation_mse, col="green")
 lines(train_mse, col="red")
-text(locator(), labels = c("Validation MSE", "Train MSE"))
+#text(locator(), labels = c("Validation MSE", "Train MSE"))
 
 # perform a variable selection from a linear model in which Fat is a response and 
 # Channel1-Channel100 are predictors
 
 # useful: http://faculty.chicagobooth.edu/richard.hahn/teaching/formulanotation.pdf
 
-linear_model = lm(Fat ~ . -Protein -Moisture, data=train)
-??stepAIC
+# use stepAIC to select features to be used in model
+model = lm(Fat ~ . -Sample -Protein -Moisture, data=data)
+step_aic = stepAIC(model, direction="both", trace=FALSE)
+cat("number of features selected from model by stepAIC:", length(step_aic$coefficients))
 

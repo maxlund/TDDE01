@@ -55,7 +55,7 @@ lines(train_mse, col="red")
 # Use stepAIC to select features to be used in model
 model = lm(Fat ~ . -Sample -Protein -Moisture, data=data)
 step_aic = stepAIC(model, direction="both", trace=FALSE)
-cat("number of features selected from model by stepAIC:", length(step_aic$coefficients))
+cat("number of features selected from model by stepAIC:", length(step_aic$coefficients), "\n")
 
 # Question 5:
 # Fit a Ridge regression model with the same predictor and response variables.
@@ -81,13 +81,13 @@ lasso_model_cv = cv.glmnet(predictors, response, alpha=1, family="gaussian")
 
 # Report optimal lambda
 min_lambda = lasso_model_cv$lambda.min
-cat("optimal lambda in lasso cv model:", min_lambda)
+cat("optimal lambda in lasso cv model:", min_lambda, "\n")
 
 # Report how many variables were chosen by the model
 # Variables included in the model are those with coefficients != 0
 coefficients = coef(lasso_model_cv, s="lambda.min")
 num_variables = sum(coefficients != 0)
-cat("number of variables included in lasso cv model:", num_variables)
+cat("number of variables included in lasso cv model:", num_variables, "\n")
 
 # Present also a plot showing the dependence of the CV score
 plot(lasso_model_cv)

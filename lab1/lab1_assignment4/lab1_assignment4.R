@@ -13,14 +13,8 @@ plot(data$Protein, data$Moisture, xlab="Protein", ylab="Moisture", main="Protein
 # a similar ratio these data can therefore be described well by a linear model where Protein is predicting Moisture
 
 # Question 2:
-# A probabilistic model for predicting moisture (M-hat) would be a polynomial function of protein as:
-# M-hat = w0 + w1x^1 + w2x^2 + ... + wix^i
-
-# TODO: Why MSE instead of SSE? 
-# MSE = SSE/n-m where n=sample size, m=number of parameters (sum(w0..wi)).
-# and also:
-# MSE = 1/n * sum((Yi - Y-hat)^2)
-# MSE will be more dependent on the number of parameters used? 
+# A probabilistic model for predicting moisture (Y-hat) would be a polynomial function of protein (x) as:
+# Y-hat = w0 + w1x^1 + w2x^2 + ... + wix^i
 
 # Question 3
 # Divide data into 50/50 training and validation sets
@@ -49,7 +43,7 @@ for (i in 1:6)
 
 i_values = c(1:6)
 y_limits = c(min(train_mse, validation_mse), max(train_mse, validation_mse))
-plot(i_values, main="MSE", ylim=y_limits, xlab="i", ylab="MSE")
+plot(i_values, main="MSE for polynomial function of degree i", ylim=y_limits, xlab="i", ylab="MSE")
 lines(validation_mse, col="green")
 lines(train_mse, col="red")
 #text(locator(), labels = c("Validation MSE", "Train MSE"))
@@ -73,13 +67,13 @@ predictors = as.matrix(data[,2:101])
 # Fit ridge regression model
 rr_model = glmnet(predictors, response, alpha = 0, family="gaussian")
 # Plot showing how model coefficients depend on the log of the penalty factor lambda
-plot(rr_model, main="Ridge regression model", xvar="lambda", label=TRUE)
+plot(rr_model, xvar="lambda", label=TRUE)
 
 # Question 6:
 # Same as question 5 but using a LASSO regression model
 lasso_model = glmnet(predictors, response, alpha = 1, family="gaussian")
 # plot showing how model coefficients depend on the log of the penalty factor lambda
-plot(lasso_model, main="LASSO regression model", xvar="lambda", label=TRUE)
+plot(lasso_model, xvar="lambda", label=TRUE)
 
 # Question 7:
 # Use cross-validation to find the optimal LASSO model
@@ -94,3 +88,6 @@ cat("optimal lambda in lasso cv model:", min_lambda)
 coefficients = coef(lasso_model_cv, s="lambda.min")
 num_variables = sum(coefficients != 0)
 cat("number of variables included in lasso cv model:", num_variables)
+
+# Present also a plot showing the dependence of the CV score
+plot(lasso_model_cv)

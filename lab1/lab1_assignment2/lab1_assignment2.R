@@ -57,4 +57,4 @@ new_observations = rexp(50, rate = max_likelihood_all$maximum)
 
 # plot histograms with the old and new observations
 hist(machines, plot=TRUE, main="The original observations")
-hist(new_observations, plot=TRUE, main="The new observations drawn from the exponential distribution")
+hist(new_observations, plot=TRUE, main="New observations drawn from the exponential distribution")

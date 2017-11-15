@@ -77,7 +77,7 @@ plot(lasso_model, xvar="lambda", label=TRUE)
 
 # Question 7:
 # Use cross-validation to find the optimal LASSO model
-lasso_model_cv = cv.glmnet(predictors, response, alpha=1, family="gaussian")
+lasso_model_cv = cv.glmnet(predictors, response)
 
 # Report optimal lambda
 min_lambda = lasso_model_cv$lambda.min

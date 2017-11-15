@@ -62,20 +62,39 @@ missclassification_rate=function(confusion_matrix) {
 }
 
 # get probabilites and confusion matrix for our knearest classifier using k=5
+# classifying test data
 probs_knearest5 = knearest(train, 5, test)
 cm_knearest5 = get_confusion_matrix(probs_knearest5, test)
-print("CM for our knearest classifier using k=5:")
+print("CM for our knearest classifier on test data using k=5:")
 print(cm_knearest5)
 cat("missclassification rate:", missclassification_rate(cm_knearest5), "\n")
 
 # repeat process for k=1
-probs_knearest1 = knearest(train, 1, test)
+# classifying test data
+probs_knearest1 = knearest(train, 1, test) 
 cm_knearest1 = get_confusion_matrix(probs_knearest1, test)
-print("CM for our knearest classifier using k=1:")
+print("CM for our knearest classifier on test data using k=1:")
 print(cm_knearest1)
 cat("missclassification rate:", missclassification_rate(cm_knearest1), "\n")
 
+# get probabilites and confusion matrix for our knearest classifier using k=5
+# classifying train data
+probs_knearest5_train = knearest(train, 5, train)
+cm_knearest5_train = get_confusion_matrix(probs_knearest5_train, train)
+print("CM for our knearest classifier on train data using k=5:")
+print(cm_knearest5_train)
+cat("missclassification rate:", missclassification_rate(cm_knearest5_train), "\n")
+
+# repeat process for k=1
+# classifying test data
+probs_knearest1_train = knearest(train, 1, train)
+cm_knearest1_train = get_confusion_matrix(probs_knearest1_train, train)
+print("CM for our knearest classifier on train data using k=1:")
+print(cm_knearest1_train)
+cat("missclassification rate:", missclassification_rate(cm_knearest1_train), "\n")
+
 # repeat again but using kknn classifier from the kknn package with k=5
+# classifying test data
 kknn5 = kknn(formula=Spam~., train=train, test=test, k=5)
 probs_kknn5 = fitted.values(kknn5)
 cm_kknn5 = get_confusion_matrix(probs_kknn5, test)

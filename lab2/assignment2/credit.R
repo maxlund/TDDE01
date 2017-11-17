@@ -39,7 +39,16 @@ get_misclassification=function(model, data)
   return (misclassification_rate)
 }
 
-cat("misclassification for test data: ",
-    get_misclassification(model.deviance, test))
-cat("misclassification for train data: ", 
-    get_misclassification(model.deviance, train))
+cat("misclassification using 'deviance' for test data: ",
+    get_misclassification(model.deviance, test),
+    "\nmisclassification using 'deviance' for train data: ", 
+    get_misclassification(model.deviance, train),
+    "\nmisclassification using 'gini' for test data: ",
+    get_misclassification(model.gini, test),
+    "\nmisclassification using 'gini' for train data: ", 
+    get_misclassification(model.gini, train))
+
+# deviance provides lower misclassification rate for both tests
+
+
+    

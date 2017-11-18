@@ -46,14 +46,14 @@ get_confusion_matrix=function(model, data)
   return (cm)
 }
 
-cat("misclassification using 'deviance' for test data: ",
-    get_misclass_rate(model.deviance, test),
-    "\nmisclassification using 'deviance' for train data: ", 
+cat("\nmisclass rate using 'deviance' for train data: ", 
     get_misclass_rate(model.deviance, train),
-    "\nmisclassification using 'gini' for test data: ",
-    get_misclass_rate(model.gini, test),
-    "\nmisclassification using 'gini' for train data: ", 
-    get_misclass_rate(model.gini, train))
+    "\nmisclass rate using 'deviance' for test data: ",
+    get_misclass_rate(model.deviance, test),
+    "\nmisclass rate using 'gini' for train data: ", 
+    get_misclass_rate(model.gini, train),
+    "\nmisclass rate using 'gini' for test data: ",
+    get_misclass_rate(model.gini, test))
 
 # deviance provides lower misclassification rate for both tests
 # chose model.deviance for pruning
@@ -97,21 +97,52 @@ text(optimal.tree)
 
 # get misclassification rate for optimal tree on test data
 optimal.misclass = get_misclass_rate(optimal.tree, test)
-cat("misclassification of optimal tree:", optimal.misclass)
+cat("\nmisclass rate of optimal tree:", optimal.misclass)
 
 # fit a naive bayes model to train data
 model.bayes = naiveBayes(formula = good_bad ~ ., 
                          data = train)
 
 # misclass-rate is higher for train than test..
-cat("misclass rate for naive bayes model on train data:",
+cat("\nmisclass rate for naive bayes model on train data:",
     get_misclass_rate(model.bayes, train),
     "\nmisclass rate for naive bayes model on test data:",
     get_misclass_rate(model.bayes, test))
 
-cm_train = get_confusion_matrix(model.bayes, train)
-cm_test = get_confusion_matrix(model.bayes, test)
+cat("\n\nCM for naiveBayes (train):")
+print(get_confusion_matrix(model.bayes, train))
+cat("\nCM for naiveBayes (test):")
+print(get_confusion_matrix(model.bayes, test))
 
-print(cm_train)
-print(cm_test)
-    
+# get raw probabilities for both classes from naiveBayes classifier
+raw.train = predict(model.bayes, newdata = train, type = "raw")
+raw.test = predict(model.bayes, newdata = test, type = "raw")
+
+# predicting 'good' must be 10x more probable than bad
+# to make the prediction 'good' with new loss-matrix 
+preds.train = (raw.train[, 2] / raw.train[, 1]) > 10
+preds.test = (raw.test[, 2] / raw.test[, 1]) > 10
+
+# convert booleans to good/bad labels
+preds.train[which(preds.train == TRUE)] = "good"
+preds.train[which(preds.train == FALSE)] = "bad"
+preds.test[which(preds.test == TRUE)] = "good"
+preds.test[which(preds.test == FALSE)] = "bad"
+
+# CM for train and test
+cm.train = table(preds.train, train$good_bad)
+cm.test = table(preds.test, test$good_bad)
+
+cat("\nCM for naiveBayes + new loss matrix (train):")
+print(cm.train)
+cat("\nCM for naiveBayes + new loss matrix (test):")
+print(cm.test)
+
+# misclass-rate for train and test
+misclass.train = (cm.train[1,2] + cm.train[2,1]) / sum(cm.train)
+misclass.test = (cm.test[1,2] + cm.test[2,1]) / sum(cm.test)
+
+cat("\nmisclass rate naiveBayes + new loss matrix (train data):",
+    misclass.train,
+    "\nmisclass rate naiveBayes + new loss matrix (test data):",
+    misclass.test)

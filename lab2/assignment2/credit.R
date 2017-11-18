@@ -1,4 +1,5 @@
 library(tree)
+library(e1071)
 
 data = read.csv("creditscoring.csv", header = TRUE, 
                 sep = ",", quote = "\"", dec = ".", 
@@ -31,12 +32,18 @@ model.gini = tree(formula = good_bad ~ .,
 
 get_misclass_rate=function(model, data)
 {
+  cm = get_confusion_matrix(model, data)
+  misclass_rate = (cm[1,2] + cm[2,1]) / sum(cm)
+  return (misclass_rate)
+}
+
+get_confusion_matrix=function(model, data)
+{
   prediction = predict(model, 
                        newdata = data, 
                        type = "class")
   cm = table(prediction, data$good_bad)
-  misclass_rate = (cm[1,2] + cm[2,1]) / sum(cm)
-  return (misclass_rate)
+  return (cm)
 }
 
 cat("misclassification using 'deviance' for test data: ",
@@ -79,11 +86,12 @@ optimal.leaves = which.min(validation_score[2:9]) + 1
 optimal.tree = prune.tree(model.deviance, 
                           best = optimal_leaves)
 # get variables selected of optimal tree
-# = savings, duration, history
-optimal.variables = subset(optimal.tree$frame, 
-                           var != "<leaf>", 
-                           select = var)
+summary(optimal.tree)
+# Variables actually used in tree construction:
+# "savings"  "duration" "history" 
+
 # print the optimal tree
+# depth = 3 (if root depth = 0)
 plot(optimal.tree)
 text(optimal.tree)
 
@@ -91,6 +99,19 @@ text(optimal.tree)
 optimal.misclass = get_misclass_rate(optimal.tree, test)
 cat("misclassification of optimal tree:", optimal.misclass)
 
+# fit a naive bayes model to train data
+model.bayes = naiveBayes(formula = good_bad ~ ., 
+                         data = train)
 
+# misclass-rate is higher for train than test..
+cat("misclass rate for naive bayes model on train data:",
+    get_misclass_rate(model.bayes, train),
+    "\nmisclass rate for naive bayes model on test data:",
+    get_misclass_rate(model.bayes, test))
 
+cm_train = get_confusion_matrix(model.bayes, train)
+cm_test = get_confusion_matrix(model.bayes, test)
+
+print(cm_train)
+print(cm_test)
     

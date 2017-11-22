@@ -30,7 +30,7 @@ summary(model.optimal)
 # like this?
 fitted_data = predict(model.optimal, newdata = data.ordered)
 plot(data.ordered$MET, data.ordered$EX, col = "green")
-points(data.ordered$MET, preds, col = "red")
+points(data.ordered$MET, fitted_data, col = "red")
 
 # histogram of residuals
 hist(resid(model.optimal))
@@ -77,7 +77,7 @@ boot.nonparam.cb = envelope(boot.nonparam, level = 0.95)
 # plot MET vs EX, predictions and
 # confidence bands for model's predictions
 plot(data.ordered$MET, data.ordered$EX, col = "green", main = "Confidence bands (non-parametric)")
-points(data.ordered$MET, preds, col = "red")
+points(data.ordered$MET, fitted_data, col = "red")
 lines(data.ordered$MET, boot.nonparam.cb$point[1, ])
 lines(data.ordered$MET, boot.nonparam.cb$point[2, ])
 
@@ -92,7 +92,7 @@ boot.param.cb = envelope(boot.param, level = 0.95)
 # same for parametric bootstrapping
 plot(boot.param)
 plot(data.ordered$MET, data.ordered$EX, col = "green", main = "Confidence bands (parametric)")
-points(data.ordered$MET, preds, col = "red")
+points(data.ordered$MET, fitted_data, col = "red")
 lines(data.ordered$MET, boot.param.cb$point[1, ])
 lines(data.ordered$MET, boot.param.cb$point[2, ])
 

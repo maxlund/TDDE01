@@ -36,7 +36,7 @@ points(data.ordered$MET, fitted_data, col = "red")
 hist(resid(model.optimal))
 
 # function that produces the statistics for the nonparametric bootstrap function boot()
-nonparametric = function(data, index)
+nonparametric=function(data, index)
 {
   sample = data[index, ]
   model = tree(formula = EX ~ MET,
@@ -48,7 +48,7 @@ nonparametric = function(data, index)
 }
 
 # same for parametric boostrapping
-parametric = function(data)
+parametric=function(data)
 {
   model = tree(formula = EX ~ MET,
                data = data,
@@ -59,12 +59,24 @@ parametric = function(data)
 }
 
 # generate some new data for EX
-rng = function(data, mle)
+rng=function(data, mle)
 {
   new_data = data.frame(EX = data$EX, MET = data$MET)
   n = length(data$EX)
   new_data$EX = rnorm(n, predict(mle, newdata = data), sd(resid(mle)))
   return(new_data)
+}
+
+prediction=function(data)
+{
+  model = tree(formula = EX ~ MET,
+               data = data,
+               control = tree.control(nrow(data), minsize = 8))
+  model.pruned = prune.tree(model, best = best.size)
+  preds = predict(model.pruned, newdata = data.ordered)
+  n = length(data.ordered$EX)
+  preds_ = rnorm(n, preds, sd(resid(model.optimal)))
+  return (preds_)
 }
 
 boot.nonparam = boot(data = data.ordered,
@@ -87,16 +99,25 @@ boot.param = boot(data = data.ordered,
                   mle = model.optimal,
                   ran.gen = rng,
                   sim = "parametric")
+
+boot.param.preds = boot(data = data.ordered,
+                        statistic = prediction,
+                        R = 1000,
+                        mle = model.optimal,
+                        ran.gen = rng,
+                        sim = "parametric")
+
 boot.param.cb = envelope(boot.param, level = 0.95)
+boot.param.pb = envelope(boot.param.preds, level = 0.95)
 
 # same for parametric bootstrapping
 plot(boot.param)
-plot(data.ordered$MET, data.ordered$EX, col = "green", main = "Confidence bands (parametric)")
+plot(data.ordered$MET, data.ordered$EX, col="black", 
+     main="Confidence and prediction bands (parametric)", ylim=c(100, 500))
 points(data.ordered$MET, fitted_data, col = "red")
-lines(data.ordered$MET, boot.param.cb$point[1, ])
-lines(data.ordered$MET, boot.param.cb$point[2, ])
-
-# ********************
-# TODO: prediction bands ..?
-# ********************
-
+lines(data.ordered$MET, boot.param.cb$point[1, ], col="blue")
+lines(data.ordered$MET, boot.param.cb$point[2, ], col="blue")
+lines(data.ordered$MET, boot.param.pb$point[1, ], col="orange")
+lines(data.ordered$MET, boot.param.pb$point[2, ], col="orange")
+legend("topright", legend=c("Confidence bands", "Prediction bands"),
+       col=c("blue", "orange"), lty=1, cex=0.8)

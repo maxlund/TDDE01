@@ -7,6 +7,7 @@ data = read.csv("NIRSpectra.csv", header = TRUE,
 # ************************ TODO:
 # Should we remove the 'Viscosity' column when doing PCA etc??
 # ************************
+
 features = princomp(data[, -ncol(data)])
 summary(features)
 # First 3 components:
@@ -19,22 +20,28 @@ plot(features, main="PCA of different spectras")
 # plot of PC1 vs PC2
 x_lim = c(min(features$scores[ ,1]), max(features$scores[ ,1]))
 y_lim = c(min(features$scores[ ,2]), max(features$scores[ ,2]))
-plot(features$scores[ ,1], features$scores[ ,2], xlab="PC1", ylab="PC2", xlim=x_lim, ylim=y_lim)
+plot(features$scores[ ,1], features$scores[ ,2], xlim=x_lim, ylim=y_lim)
 
 # for comparison, if we look at ex. PC1 vs PC5:
 # plot(features$scores[ ,1], features$scores[ ,16], xlab="PC1", ylab="PC2", xlim=x_lim, ylim=y_lim)
 # .. all the variance is explained by PC1
 
 loads = loadings(features)
+par(mfrow=c(1,1))
 plot(loads[, 1], type="b")
 plot(loads[, 2], type="b")
+# which has 0 load? those contribute nothing to the linear transformation,
+# LOAD = how much a feature contribute to the variance within a principal component
+# i.e. how much does one dimension contribute to the variance along the dimension of the PC.
 # ************************ TODO:
 # Is there any principle component that is explained by mainly a few original features?
+# YES PC2, there are a lot of features that are around 0
 # ************************
 
 res = fastICA(data[ ,-ncol(data)], 2, fun = "logcosh", alpha = 1.0,
                    row.norm = FALSE, maxit = 200, tol = 0.0001, verbose = TRUE)
 
+str(res)
 # K = pre-whitening matrix that projects data onto the first n.comp principal components.
 # W = estimated un-mixing matrix
 # ************************ TODO:
@@ -48,7 +55,10 @@ plot(W_prime[, 2])
 # ************************ TODO:
 # Make a plot of the scores of the first two latent features and compare
 # it with the score plot from step 1
+# lookup str(res) -- S ?
 # ***********************
+
+plot(res$S[, 1], res$S[, 2], main = "Scores of first two latent features in fastICA")
 
 pcr.fit = pcr(formula = Viscosity ~ ., 
               data = data,

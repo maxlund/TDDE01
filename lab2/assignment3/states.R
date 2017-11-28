@@ -88,10 +88,12 @@ boot.nonparam.cb = envelope(boot.nonparam, level = 0.95)
 
 # plot MET vs EX, predictions and
 # confidence bands for model's predictions
-plot(data.ordered$MET, data.ordered$EX, col = "green", main = "Confidence bands (non-parametric)")
+plot(data.ordered$MET, data.ordered$EX, col = "black", main = "Confidence bands (non-parametric)")
 points(data.ordered$MET, fitted_data, col = "red")
-lines(data.ordered$MET, boot.nonparam.cb$point[1, ])
-lines(data.ordered$MET, boot.nonparam.cb$point[2, ])
+lines(data.ordered$MET, boot.nonparam.cb$point[1, ], col="blue")
+lines(data.ordered$MET, boot.nonparam.cb$point[2, ], col="blue")
+legend("topright", legend=c("Confidence bands"),
+       col=c("blue"), lty=1, cex=0.8)
 
 boot.param = boot(data = data.ordered,
                   statistic = parametric,

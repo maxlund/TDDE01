@@ -13,6 +13,9 @@ library(tree)
 library(e1071)
 library(tree)
 library(boot)
+library(fastICA)
+library(pls)
+options(warn=-1)
 ```
 \title{TDDE01: Machine Learning, LAB2}
 \date{2017-11-28}
@@ -37,7 +40,7 @@ validation = remainder[id, ]
 test = remainder[-id, ]
 ```
 \subsection{Fitting tree models}
-Next we fit two models using either the gini or the deviance measures of impurity. The misclassification rates are reported and the model with the lowest rate is selected.
+Next we fit two models using either the \textit{gini} or the \textit{deviance} measures of impurity. The misclassification rates are reported and the model with the lowest rate is selected.
 ```{r fit_tree, echo=TRUE}
 # fit one model using deviance (cross-entropy)
 model.deviance = tree(formula = good_bad ~ ., 
@@ -63,7 +66,7 @@ get_confusion_matrix=function(model, data)
   return (cm)
 }
 
-cat("\nmisclass rate using 'deviance' for train data: ",
+cat("misclass rate using 'deviance' for train data: ",
     get_misclass_rate(model.deviance, train),
     "\nmisclass rate using 'deviance' for test data: ",
     get_misclass_rate(model.deviance, test),
@@ -72,7 +75,7 @@ cat("\nmisclass rate using 'deviance' for train data: ",
     "\nmisclass rate using 'gini' for test data: ",
     get_misclass_rate(model.gini, test))
 ```
-Since deviance had the lower misclassification rates, this model is chosen for the subsequent steps.
+Since the deviance method had lower misclassification rates, this model is chosen for the subsequent steps.
 \newline
 \newline
 Next we use the training and validation sets to choose the optimal tree depth. This is done by measuring the deviance for when pruning the tree to have a set number of terminal nodes (leaves) in the range 2-9.
@@ -114,39 +117,39 @@ text(optimal.tree)
 
 # get misclassification rate for optimal tree on test data
 optimal.misclass = get_misclass_rate(optimal.tree, test)
-cat("\nmisclass rate of optimal tree:", optimal.misclass)
+cat("misclass rate of optimal tree:", optimal.misclass)
 ```
-The optimal tree has 4 leaves, with a depth of 3. The variables selected by the tree was Savings, Duration, and History, with the tree splitting for different values of these variables to do make predictions.
+The optimal tree has 4 leaves, with a depth of 3. The variables selected by the tree was Savings, Duration, and History, with the tree splitting for different values of these variables to make predictions.
 
 \subsection{Fitting a Naive Bayes classifier}
-Next we use the training data to perform classification using a Naive Bayes classifier, measuring its misclassification rates and confusion matrices on the test and traninig data.
+Next we use the training data to perform classification using a \textit{Naive Bayes classifier}, measuring its misclassification rates and confusion matrices on the test and traninig data.
 ```{r bayes, echo=TRUE}
 # fit a naive bayes model to train data
 model.bayes = naiveBayes(formula = good_bad ~ ., 
                          data = train)
 
 # misclass-rate is higher for train than test..
-cat("\nmisclass rate for naive bayes model on train data:",
+cat("misclass rate for naive bayes model on train data:",
     get_misclass_rate(model.bayes, train),
     "\nmisclass rate for naive bayes model on test data:",
     get_misclass_rate(model.bayes, test))
 
-cat("\n\nCM for naiveBayes (train):")
+cat("CM for naiveBayes (train data):")
 print(get_confusion_matrix(model.bayes, train))
-cat("\nCM for naiveBayes (test):")
+cat("CM for naiveBayes (test data):")
 print(get_confusion_matrix(model.bayes, test))
 ```
 From the results we can see that the Naive Bayes classifier has a higher misclassification rate than our optimal tree model.
 \newline
 \newline
-For the final task we use a modified loss matrix for our naive bayes classifier where the penalty for misclassifying a future loan management as good when the true classification was actually bad is 10 times higher than the inverse misclassification. To calculate the new misclassification rate and confusion matrix using this loss matrix, we get the raw probabilities for each class from our classifier, and apply the new classification policy to our probabilities.
+For the final task we use a modified loss matrix for our naive bayes classifier where the penalty for misclassifying a future loan management as good when the true classification was actually bad is 10 times higher than making the inverse misclassification. To calculate the new misclassification rate and confusion matrix using this loss matrix, we get the raw probabilities for each class from our classifier, and apply the new classification policy to our probabilities.
 ```{r bayes_new_loss, echo=TRUE}
 # get raw probabilities for both classes from naiveBayes classifier
 raw.train = predict(model.bayes, newdata = train, type = "raw")
 raw.test = predict(model.bayes, newdata = test, type = "raw")
 
 # predicting 'good' must be 10x more probable than bad
-# to make the prediction 'good' with new loss-matrix 
+# to make the prediction 'good' with new loss matrix 
 preds.train = (raw.train[, 2] / raw.train[, 1]) > 10
 preds.test = (raw.test[, 2] / raw.test[, 1]) > 10
 
@@ -160,16 +163,16 @@ preds.test[which(preds.test == FALSE)] = "bad"
 cm.train = table(preds.train, train$good_bad)
 cm.test = table(preds.test, test$good_bad)
 
-cat("\nCM for naiveBayes + new loss matrix (train):")
+cat("CM for naiveBayes using new loss matrix (train data):")
 print(cm.train)
-cat("\nCM for naiveBayes + new loss matrix (test):")
+cat("CM for naiveBayes using new loss matrix (test data):")
 print(cm.test)
 
 # misclass-rate for train and test
 misclass.train = (cm.train[1,2] + cm.train[2,1]) / sum(cm.train)
 misclass.test = (cm.test[1,2] + cm.test[2,1]) / sum(cm.test)
 
-cat("\nmisclass rate naiveBayes + new loss matrix (train data):",
+cat("misclass rate naiveBayes + new loss matrix (train data):",
     misclass.train,
     "\nmisclass rate naiveBayes + new loss matrix (test data):",
     misclass.test)
@@ -184,7 +187,7 @@ set.seed(12345)
 data = read.csv("State.csv", header = TRUE, 
                 sep = ";", dec = ",", fill = TRUE)
 # sort data by variable MET (desc)
-data.ordered = data[order(data$MET),]
+data.ordered = data[order(data$MET), ]
 # plot EX vs MET
 plot(data.ordered$MET, data.ordered$EX, xlab="MET", ylab="EX")
 ```
@@ -211,9 +214,10 @@ points(data.ordered$MET, fitted_data, col="red")
 legend("top", legend=c("Observations", "Predictions"),
        col=c("black", "red"), pch=1, cex=0.8)
 # histogram of residuals
-hist(resid(model.optimal), xlab="Residuals of optimal model")
+hist(resid(model.optimal), xlab="Residuals", main="Histogram of residuals for the optimal model")
 ```
-As we can see the predicted values only have three discting values for the feature \textit{EX}. This is because the optimal model selected only has three leaf nodes, and makes it difficult to fit the model to the scattered observations. Looking at the histogram we can also see that the distribution of the residuals is not a Gaussian distribution, and the most frequent value for the residuals is around -50, which would also suggest that the model is not a good fit for the data.
+\newline
+As we can see the predicted values only have three disctinct values for the feature \textit{EX}. This is because the optimal model selected only has three leaf nodes, which makes it difficult to fit the model to the scattered observations. Looking at the histogram we can also see that the distribution of the residuals is not a Gaussian distribution, and the most frequent value for the residuals is around -50, which would also suggest that the model is not a good fit for the data.
 \subsection{Estimating uncertainty}
 In order to measure the uncertainty in the predictions of our model, we compute the 95% confidence bands using \textit{bootstrapping}. Since we don't know the underlying distribution of the observations, we use \textit{non-parametric bootstrapping}, which resamples the data with replacement.
 ```{r cb_nonparam, echo=TRUE}
@@ -242,6 +246,7 @@ lines(data.ordered$MET, boot.nonparam.cb$point[2, ], col="blue")
 legend("top", legend=c("Confidence bands"),
        col=c("blue"), lty=1, cex=0.8)
 ```
+\newline
 We can see that the confidence band is bumpy along each prediction. This is because we have discrete predictions, so the confidence bands will also have discrete points. Since more than 5% of the observations are outside the confidence bands, the model doesn't seem to be a good fit.
 \newline
 \newline
@@ -253,8 +258,7 @@ This allows us to use \textit{parametric bootstrapping}, in which we draw new ob
 ```{r cb_param, echo=TRUE}
 parametric=function(data)
 {
-  model = tree(formula = EX ~ MET,
-               data = data,
+  model = tree(formula = EX ~ MET, data = data,
                control = tree.control(nrow(data), minsize = 8))
   model.pruned = prune.tree(model, best = best.size)
   prediction = predict(model.pruned, newdata = data.ordered)
@@ -309,7 +313,67 @@ lines(data.ordered$MET, boot.param.pb$point[2, ], col="orange")
 legend("top", legend=c("Confidence bands", "Prediction bands"),
        col=c("blue", "orange"), lty=1, cex=0.8)
 ```
-As we can see the prediction bands does seem to cover more than 95% of the observations. But since the histogram of the residuals earlier showed that the distribution did not look like a Gaussian distribution, it is probably more suitable to use the non-parametric bootstrapping.
-
+\newline
+As we can see the prediction bands does seem to cover more than 95% of the observations. But since the histogram of the residuals earlier showed that the distribution did not look Gaussian, it is probably more suitable to use the non-parametric bootstrapping.
+\newpage
 \section{Assignment 4}
 In the final assignment, we are examining a dataset containing near-infrared spectra and viscosity levels for a collection of diesel fuels.
+\subsection{Principle component analysis}
+We begin by doing a \textit{principle component analysis} (PCA), where we find which components that explain most of the variance seen in the data.
+```{r pca, echo=TRUE}
+set.seed(12345)
+data = read.csv("NIRSpectra.csv", header = TRUE, 
+                sep = ";", dec = ",", fill = TRUE)
+features = princomp(data[, -ncol(data)])
+plot(features, main="PCA of different spectras")
+# proportion of variance in PC1 + PC2 = 0.933 + 0.062 = 0.996 > 0.99
+# -- we choose PC1 and PC2.
+
+# plot of PC1 vs PC2
+x_lim = c(min(features$scores[ ,1]), max(features$scores[ ,1]))
+y_lim = c(min(features$scores[ ,1]), 0.15)
+plot(features$scores[ ,1], features$scores[ ,2], lim=x_lim, ylim=y_lim,
+     main="Scores in PC1-PC2", xlab="PC1", ylab="PC2")
+```
+\newline
+Since PC1 and PC2 together explain over 99% of the variance seen in the data, we select these two principal components. From the plot we can also make out some outliers of unsual diesel fuels.
+\newline
+\newline
+Next we make trace plots of the loadings of PC1 and PC2, in order to examine which features contribute the most to the variance seen in the principle component.
+```{r loads_pca, echo=TRUE}
+# loads, how much each feature contribute to the variance seen in a PC
+loads = loadings(features)
+plot(loads[, 1], type="b", ylab="Loadings", main="Loadings PC1")
+plot(loads[, 2], type="b", ylab="Loadings", main= "Loadings PC2")
+```
+\newline
+We can see that PC2 has many loadings at values at or close to 0, which tells us that there are many features that doesn't contribute to the variance seen in PC2. The few points at the top of the graph suggests that there are a few features that account for most of the variance in PC2.
+\subsection{Independent component analysis}
+Next we perform an independent component analysis using the same number of components (two) as earlier. In contrast to the principle component analysis, we assume that the components are independent. We calculate the independence of the features within the independent components and plot the traces of the results.
+```{r ica, echo=TRUE, results='hide', message='hide'}
+res = fastICA(data[ ,-ncol(data)], 2, fun = "logcosh", alpha = 1.0,
+              row.norm = FALSE, maxit = 200, tol = 0.0001, verbose = TRUE)
+# K = pre-whitening matrix that projects data onto the first 2 principal components.
+# W = estimated un-mixing matrix
+Wp = res$K %*% res$W
+```
+```{r ica_plots, echo=TRUE}
+# plot of feature independence in the two ICs
+plot(Wp[, 1], main="Feature independence, IC1")
+plot(Wp[, 2], main="Feature independence, IC2")
+
+```
+\newline
+If we compare the trace plots with those of the loadings of our PCA, we can see that they look like the inverse of each other. This is because ICA measures the independence of features while PCA measures their correlation, which is why the results look like mirror opposites.
+\subsection{Principal component regression}
+Finally, we fit a PCR model in which the number of components is selected by cross validation to the data.
+```{r pcr, echo=TRUE}
+# fit a PCR model
+pcr.fit = pcr(formula = Viscosity ~ ., 
+              data = data,
+              validation = "CV")
+# plot predicted mean squared error dependent on number of components
+validationplot(pcr.fit, val.type = "MSEP")
+```
+\newline
+According to the PCR model, the optimal number of principle components for the lowest predicted MSE looks to be around 20.

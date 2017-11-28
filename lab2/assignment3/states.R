@@ -4,10 +4,8 @@ library(boot)
 set.seed(12345)
 data = read.csv("State.csv", header = TRUE, 
                 sep = ";", dec = ",", fill = TRUE)
-
 # sort data by variable MET (desc)
 data.ordered = data[order(data$MET),]
-
 # plot EX vs MET
 plot(data.ordered$MET, data.ordered$EX)
 # fit a tree model, #observations in leaf >= 8
@@ -23,15 +21,10 @@ best.size = model.cv$size[which(model.cv$dev==min(model.cv$dev))]
 model.optimal = prune.tree(model, best = best.size)
 # report the selected tree
 summary(model.optimal)
-
-#*****
-# TODO: plot original and fitted data..
-#*****
-# like this?
+#plot original and fitted data..
 fitted_data = predict(model.optimal, newdata = data.ordered)
 plot(data.ordered$MET, data.ordered$EX, col = "green")
 points(data.ordered$MET, fitted_data, col = "red")
-
 # histogram of residuals
 hist(resid(model.optimal))
 
@@ -83,8 +76,6 @@ boot.nonparam = boot(data = data.ordered,
                      statistic = nonparametric,
                      R = 1000)
 boot.nonparam.cb = envelope(boot.nonparam, level = 0.95)
-
-#plot(boot.nonparam)
 
 # plot MET vs EX, predictions and
 # confidence bands for model's predictions

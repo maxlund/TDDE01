@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "# load data from csv and convert to matrix\n# if csv is using comma separator of decimal points,\n# change to data = \",\" in argument passed to read.csv()\n\ndata_csv = read.csv(\"machines.csv\", header = TRUE, sep = \",\", quote = \"\\\"\",\n                    dec = \".\", fill = TRUE, comment.char = \"\")\nmachines = as.matrix(data_csv)\n\n# the probability function used to calculate the log-likelihood\nprobability=function(theta, data) {\n  return (theta * exp((-theta) * data))\n}\n\n# sum of log-likelihoods function, returns sum of the log-likelihoods using all observations\nsum_log_likelihood=function(theta) {\n  return(sum(log(probability(theta, machines))))\n}\n\n# sum of log-likelihoods function, returns sum of the log-likelihoods using just the first 6 observations\nsum_log_likelihood2=function(theta) {\n  return(sum(log(probability(theta, machines[1:6]))))\n}\n\n# prior probability for theta for the bayesian model\nprior_probability=function(theta) {\n  return (10 * exp(-10 * theta))\n}\n\n# sum of log of posterior likelihoods\nsum_log_posterior_likelihood=function(theta) {\n  return (sum(log(probability(theta, machines)*prior_probability(theta))))\n}\n\n# function needs to be vectorized to be accepted by curve.. obviously! (?)\nf <- Vectorize(sum_log_likelihood)\n# plot function for values of theta from 0 to 3\ncurve(f, from=0, to=3, xlab=\"Theta\", ylab=\"Sum of log-likelihoods (all observations)\")\n# find the theta value that maximizes the sum of log-likelihoods function with all observations\nmax_likelihood_all = optimize(f, interval=c(0, 3), maximum=TRUE)\ncat(\"max log-likelihood value using all observations is given by theta =\", max_likelihood_all$maximum, \"\\n\")\n\n# repeat using only the first six observations in 'machines' \n# (can't figure out how to pass several arguments when plotting with curve() function)\nf2 <- Vectorize(sum_log_likelihood2)\ncurve(f2, from=0, to=3, xlab=\"Theta\", ylab=\"Sum of log-likelihoods (first six observations)\")\nmax_likelihood_first6 = optimize(f2, interval=c(0, 3), maximum=TRUE)\ncat(\"max log-likelihood value using only first 6 observations is given by theta =\", max_likelihood_first6$maximum, \"\\n\")\n\n# use the log-likelihood function where theta has a prior probability (bayesian model)\nf3 <- Vectorize(sum_log_posterior_likelihood)\ncurve(f3, from=0, to=3, xlab=\"Theta\", ylab=\"Sum of log of posterior likelihoods\")\nmax_likelihood_bayesian = optimize(f3, interval=c(0, 3), maximum=TRUE)\ncat(\"max log-likelihood in p(x, theta) gives optimal theta =\", max_likelihood_bayesian$maximum, \"\\n\")\n\n# generate 50 new observations from the exponential distribution\nnew_observations = rexp(50, rate = max_likelihood_all$maximum)\n\n# plot histograms with the old and new observations\nhist(machines, plot=TRUE, main=\"The original observations\")\nhist(new_observations, plot=TRUE, main=\"New observations drawn from the exponential distribution\")",
+    "created" : 1510594454986.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3869915392",
+    "id" : "1729C788",
+    "lastKnownWriteTime" : 1510842280,
+    "last_content_update" : 1510842280,
+    "path" : "~/TDDE01/lab1/lab1_assignment2/lab1_assignment2.R",
+    "project_path" : "lab1_assignment2.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

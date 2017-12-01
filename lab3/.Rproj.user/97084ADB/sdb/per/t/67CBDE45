@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "set.seed(1234567890)\nlibrary(geosphere)\n\ntemps = read.csv(\"temps50k.csv\", sep=\",\", dec=\".\",\n                 header=TRUE, fill=TRUE)\nstations = read.csv(\"stations.csv\", sep=\",\", dec=\".\", \n                    header=TRUE, fileEncoding=\"latin1\")\nst = merge(stations, temps, by=\"station_number\")\n\n# general function used by all kernels\ngaussian=function(distance, h_value)\n{\n  return (exp(-(distance^2 / h_value)))\n}\n\n# if we reason that 200km is a good cut-off for how close two stations should be\n# we try different h-values to find one with the appropirate cut-off\ndist = seq(-600, 600, by=1)\nplot(dist, gaussian(dist, 10000), type=\"l\")\n# width/h-value for distance kernel seems to be around 10000\nh_distance = 10000\n\n# obs/real is c('longitude', 'latitude')\ndistance_kernel=function(obs, real)\n{\n  distance_km = distHaversine(obs, real) / 1000\n  return (gaussian(distance_km / h_distance))\n}\n\n# looking at some temperature diagrams, we reason that 15 days might be a good interval\n# also, since we have taken the distance threshold to be 200km, the temperature difference\n# of our day-of-year distance should be somewhat similar.\ndist = seq(-30, 30, by=1)\nplot(dist, gaussian(dist, 45), type=\"l\")\n\n# a good h-value/width for the date/day-of-year interval seems to be about 45\nh_date = 1\n\n# helper function to get the difference between two dates, irrespective of their years\nday_difference=function(date1, date2)\n{\n  day_diff = as.Date(as.character(date1), format=\"%Y-%m-%d\") - \n             as.Date(as.character(date2), format=\"%Y-%m-%d\")\n  day_diff = abs(as.numeric(day_diff))\n  return (day_diff %% 365)\n}\n\n# obs/real are dates of YYYY-MM-DD strings\ndate_kernel=function(obs, real, h_date)\n{\n  day_diff = day_difference(obs, real)\n  return (gaussian(day_diff, h_date))\n}\n\nh_time = 1\n\nplot(st$latitude, st$air_temperature)\n",
+    "created" : 1512120520164.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2586829829",
+    "id" : "67CBDE45",
+    "lastKnownWriteTime" : 1512126982,
+    "last_content_update" : 1512126982240,
+    "path" : "~/TDDE01/lab3/forecast.r",
+    "project_path" : "forecast.r",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

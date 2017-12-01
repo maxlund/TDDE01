@@ -31,3 +31,24 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+
+lab1/lab1_assignment1/.RData
+lab1/lab1_assignment1/.Rhistory
+lab1/lab1_assignment1/.Rproj.user/
+lab1/lab1_assignment2/.RData
+lab1/lab1_assignment2/.Rhistory
+lab1/lab1_assignment2/.Rproj.user/
+lab2/Computer lab 2.pdf
+lab2/assignment1.R
+lab2/assignment2/.RData
+lab2/assignment2/.Rhistory
+lab2/assignment2/.Rproj.user/
+lab2/assignment2/creditscoring.xls
+lab2/assignment3/.RData
+lab2/assignment3/.Rhistory
+lab2/assignment3/.Rproj.user/
+lab2/assignment3/NIRSpectra.csv
+lab2/assignment4/.Rhistory
+lab2/assignment4/.Rproj.user/
+lab3/.Rhistory
+lab3/.Rproj.user/

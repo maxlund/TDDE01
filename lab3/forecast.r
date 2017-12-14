@@ -132,9 +132,9 @@ time_kernel=function(time1, time2)
 }
 
 # our targets to forecast are the following:
-latitude = 58.4274
-longitude = 14.826
-target_date = "2013-11-04"
+latitude = 58.41
+longitude = 15.618
+target_date = "2017-12-11"
 times = c("02:00:00", "04:00:00", "06:00:00", "08:00:00", "10:00:00", "12:00:00",  
           "14:00:00", "16:00:00", "18:00:00", "20:00:00", "22:00:00", "24:00:00")
 

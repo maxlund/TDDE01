@@ -29,31 +29,24 @@ gaussian=function(distance, h_value)
 }
 ```
 The h-value of the function determines the width of our distribution, i.e. when the weights of the kernel will start becoming very small and thus not contributing much to the prediction. For the \textit{distance} kernel, we reasoned by looking at some weather maps that any location more than 200 km away from our target for prediction should be disregarded. By trying a few different h-values, we plotted until we found a suitable value:
-```{r distance, echo=FALSE}
+```{r distance, echo=TRUE}
 dist = seq(-400, 400, by=1)
 plot(dist, gaussian(dist, 10000), type="l", xlab="Kilometers", ylab="Kernel weight")
-```
-``` {r h_dist, echo=TRUE}
 # a good width/h-value for the distance kernel seems to be around 10000
 h_distance = 10000
 ```
 Next we repeated the process to find a good h-value for our kernel measuring the \textit{day of the year} difference. Looking at some diagrams of average temperatures throughout the year, we reasoned that around +/- 15 days should be a good threshold for our predictions:
-```{r day_of_year, echo=FALSE}
+```{r day_of_year, echo=TRUE}
 dist = seq(-30, 30, by=0.1)
 plot(dist, gaussian(dist, 45), type="l", xlab="Day-of-year difference", ylab="Kernel weight")
-
-```
-``` {r h_date, echo=TRUE}
 # a good h-value/width for the date/day-of-year kernel seems to be around 45
 h_date = 45
 ```
 Finally we repeat the process to find the h-value for our kernel measuring the \textit{time of day} difference. Although this can be tricky since day-light hours in Sweden vary considerably between the seasons, we reasoned that a good threshold would be around +/- 4 hours:
-```{r time_of_day, echo=FALSE}
+```{r time_of_day, echo=TRUE}
 dist = seq(-12, 12, by=0.01)
 plot(dist, gaussian(dist, 4), type="l", xlab="Time-of-day difference", ylab="Kernel weight")
 # a good h-value/width for the time-of-day kernel seems to be about 4
-```
-``` {r h_time, echo=TRUE}
 h_time = 4
 ```
 \subsection{Kernel functions}
@@ -216,7 +209,7 @@ The network we are using has one hidden layer of ten nodes. It is fully connecte
 # intialial random weights for NN (31 total)
 init_weights = runif(31, -1, 1)
 ```
-To find the best model, we retrain the network using progressively higher threshold for the partial derivatives of the error function, i.e. we stepwise incresingly train the model more. We then test the model on the validation set to see when the SSE for the predictions will start to rise, signaling that the model has become overfitted.
+To find the best model, we retrain the network using progressively higher threshold for the partial derivatives of the error function, i.e. we make the threshold for the allowed error higher and therefore reduce overfitting successively. We then test the model on the validation set to see when the SSE for the predictions will be lowest.
 ```{r train_net, echo=TRUE}
 errors.valid = numeric(100)
 errors.train = numeric(100)
@@ -261,11 +254,13 @@ best.nn = neuralnet(
   threshold = best.threshold
 )
 ```
-```{r plot_net, echo=FALSE}
+```{r plot_res, echo=FALSE}
 # plot predictions and true observations
 plot(prediction(best.nn)$rep1, col="red")
 points(train, col="blue")
 legend("top", legend=c("predictions", "observations"), col=c("red", "blue"), pch=c(1,1))
+```
+```{r plot_nn, echo=TRUE}
 # plot NN
 plot(best.nn)
 ```
